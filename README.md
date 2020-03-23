@@ -35,5 +35,10 @@ You will get the following signals in return:
 ## Notes
 The top level `o_valid` signal is a logical AND between the `valid` signal
 coming from the `ps2_validator` and the `ready` signal coming from the
-`ps2_signal`. This means you will only ever see a new /valid/ signal when new
+`ps2_signal`. This means you will only ever see a new *valid* signal when new
 data arrives and it is properly validated.
+
+You can expect a full 4-packet message about once every 50ms, according to the
+Basys3 reference manual. The output is magnitude of movement (velocity?) and the
+sign can be treated as direction (i.e. when `o_x_sign` is a 0, the mouse is
+moving in to the right. When `o_y_sign` is 1, it is moving downward).
