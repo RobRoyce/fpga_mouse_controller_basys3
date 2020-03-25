@@ -11,53 +11,66 @@ module ps2_signal(
                   output wire [10:0] o_word4,
                   output wire        o_ready
                   );
-   reg [43:0]                        fifo, buffer;
-   reg                               ready;
+   reg [43:0]                        fifo,
+                                     buffer;
    reg [5:0]                         counter;
+   reg [1:0]                         PS2Clk_sync;
+   reg                               ready,
+                                     PS2Data;
+   wire                              PS2Clk_negedge;
 
    assign o_word1 = fifo[33 +: 11];
    assign o_word2 = fifo[22 +: 11];
    assign o_word3 = fifo[11 +: 11];
    assign o_word4 = fifo[0 +: 11];
    assign o_ready = ready;
+   assign PS2Clk_negedge = (PS2Clk_sync == 2'b10);
 
    initial
      begin
         fifo <= 44'b0;
         buffer <= 44'b0;
         counter <= 6'b0;
+        PS2Clk_sync <= 2'b1;
         ready <= 1'b0;
-     end
+        PS2Data <= 1'b0;
+     end // initial begin
 
-   always @(negedge i_PS2Clk)
+
+   always @(posedge i_clk)
      begin
         if(i_reset)
           begin
+             fifo <= 44'b0;
              buffer <= 44'b0;
              counter <= 6'b0;
              ready <= 1'b0;
+             PS2Clk_sync <= 2'b1;
+             PS2Data <= 1'b0;
           end
         else
           begin
-             buffer <= {buffer, i_PS2Data};
-             counter <= counter + 6'b1;
+             PS2Clk_sync <= {PS2Clk_sync[0], i_PS2Clk};
+             PS2Data <= i_PS2Data;
 
-             case(counter)
-               6'd43:
-                 begin
-                    ready <= 1'b1;
-                    counter <= 6'b0;
-                 end
-               6'd0:
-                 ready <= 1'b0;
-             endcase // case (counter)
-          end // else: !if(i_reset)
-     end // always @ (negedge i_clk)
+             if(PS2Clk_negedge)
+               begin
+                  buffer <= {buffer, PS2Data};
+                  counter <= counter + 6'b1;
+               end
 
-   always @(posedge i_clk)
-     if(i_reset)
-       fifo <= 44'b0;
-     else if(ready)
-       fifo <= buffer;
-
+             if(counter == 6'd44)
+               begin
+                  fifo = buffer;
+                  buffer = 44'b0;
+                  counter = 6'b0;
+                  ready = 1'b1;
+               end
+             else
+               begin
+                  ready <= 1'b0;
+                  fifo <= 44'b0;
+               end
+          end
+     end
 endmodule
