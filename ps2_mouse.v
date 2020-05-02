@@ -1,7 +1,5 @@
 `timescale 1ns / 1ps
 
-// Top level module that takes in the raw PS2 signal (clock and data) and
-// transforms them into actionable signals.
 
 module ps2_mouse(
                  input wire        i_clk,
@@ -9,13 +7,18 @@ module ps2_mouse(
                  input wire        i_PS2Data,
                  input wire        i_PS2Clk,
                  output wire [7:0] o_x,
-                 output wire [7:0] o_y,
+                 output wire       o_x_ov,
                  output wire       o_x_sign,
+                 output wire [7:0] o_y,
+                 output wire       o_y_ov,
                  output wire       o_y_sign,
                  output wire       o_r_click,
                  output wire       o_l_click,
                  output wire       o_valid
                  );
+   // Top level module that takes in the raw PS2 signal (clock and data) and
+   // transforms them into actionable signals.
+
 
    wire [10:0]                     word1, word2, word3, word4;
    wire [7:0]                      signal1, signal2, signal3, signal4;
@@ -24,7 +27,6 @@ module ps2_mouse(
    assign o_valid = ready && valid;
 
    // signal processing -> validation -> map to output
-
    //----------------------------------------------------------------------
    ps2_signal ps2_signal(
                          .i_clk(i_clk),
@@ -60,6 +62,8 @@ module ps2_mouse(
                                .i_signal4(signal4),
                                .o_x(o_x),
                                .o_y(o_y),
+                               .o_x_overflow(o_x_ov),
+                               .o_y_overflow(o_y_ov),
                                .o_x_sign(o_x_sign),
                                .o_y_sign(o_y_sign),
                                .o_l_click(o_l_click),
