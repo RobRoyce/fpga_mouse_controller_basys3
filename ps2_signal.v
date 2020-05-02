@@ -11,12 +11,19 @@ module ps2_signal(
                   output wire [10:0] o_word4,
                   output wire        o_ready
                   );
-   reg [43:0]                        fifo,
-                                     buffer;
+   // To avoid crossing clock domains, we detect the negative edge of the PS2Clk -
+   // by keeping track of it in a 2-bit state variable. A negative edge has
+   // occurred if and only if the state variable equals 2'b10. Interestingly
+   // (perhaps), you can see in the digits themselves how this gives us the
+   // negative edge. Consider the "wave form": 0/1\0/1\0/1\...
+
+
+   reg [43:0]                        fifo;
+   reg [43:0]                        buffer;
    reg [5:0]                         counter;
    reg [1:0]                         PS2Clk_sync;
-   reg                               ready,
-                                     PS2Data;
+   reg                               ready;
+   reg                               PS2Data;
    wire                              PS2Clk_negedge;
 
    assign o_word1 = fifo[33 +: 11];
@@ -38,8 +45,10 @@ module ps2_signal(
 
 
    always @(posedge i_clk)
+     // Enter Base Clock
      begin
         if(i_reset)
+          // Provide a nice default start
           begin
              fifo <= 44'b0;
              buffer <= 44'b0;
@@ -50,16 +59,19 @@ module ps2_signal(
           end
         else
           begin
+             // Sync the PS2Clk with our Base Clock
              PS2Clk_sync <= {PS2Clk_sync[0], i_PS2Clk};
              PS2Data <= i_PS2Data;
 
              if(PS2Clk_negedge)
+               // Negative edge => Data is ready!
                begin
                   buffer <= {buffer, PS2Data};
                   counter <= counter + 6'b1;
                end
 
              if(counter == 6'd44)
+               // Counter==44 => Buffer is full!
                begin
                   fifo = buffer;
                   buffer = 44'b0;
@@ -67,6 +79,7 @@ module ps2_signal(
                   ready = 1'b1;
                end
              else
+               // Counter!=44 => (!ready && clear(FIFO))
                begin
                   ready <= 1'b0;
                   fifo <= 44'b0;
