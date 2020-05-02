@@ -11,6 +11,12 @@ module ps2_validator(
                      output wire [7:0] o_signal4,
                      output wire       o_valid
                      );
+   // Provides (imperfect) validation of the PS2 signal. This is done by
+   // checking for parity and ensuring the start and stop bits are correct. If
+   // either of these cases fail to occur, the 'valid' output will be 0. Note
+   // that this is entirely combinational.
+
+
    wire                                parity1, parity2, parity3, parity4, parity;
    wire                                start1, start2, start3, start4, start;
    wire                                stop1, stop2, stop3, stop4, stop;
