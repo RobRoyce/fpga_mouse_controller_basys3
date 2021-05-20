@@ -1,4 +1,4 @@
-# basys3_usb_mouse
+# FPGA Mouse Controller - Built on Basys3
 A simple interface for controlling the Basys3 FPGA via mouse using Verilog (created and tested in Vivado)
 
 ## How it works
