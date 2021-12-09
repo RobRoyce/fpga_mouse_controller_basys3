@@ -73,10 +73,10 @@ module ps2_signal(
              if(counter == 6'd44)
                // Counter==44 => Buffer is full!
                begin
-                  fifo = buffer;
-                  buffer = 44'b0;
-                  counter = 6'b0;
-                  ready = 1'b1;
+                  fifo <= buffer;
+                  buffer <= 44'b0;
+                  counter <= 6'b0;
+                  ready <= 1'b1;
                end
              else
                // Counter!=44 => (!ready && clear(FIFO))
